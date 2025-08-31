@@ -10,11 +10,17 @@ def main():
         image = Image.open(uploaded_file)
         st.image(image, caption="Uploaded Image", use_column_width=True)
 
+        # Load model
         model = load_model("garbage_classifier.h5")
-        input_data = preprocess_image_pil(image)
 
+        # Preprocess image according to model input size
+        input_data = preprocess_image_pil(image, model)
+
+        # Run prediction
         prediction = model.predict(input_data)
-        st.write("Prediction:", prediction.tolist())  # convert to list for display
+
+        # Display result
+        st.write("Prediction (raw):", prediction.tolist())
 
 if __name__ == "__main__":
     main()
