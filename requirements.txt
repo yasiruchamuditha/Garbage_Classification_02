@@ -1,0 +1,4 @@
+streamlit
+tensorflow           # or tensorflow-macos if targeting mac M1 locally; for CI Ubuntu use plain tensorflow
+numpy
+pillow
