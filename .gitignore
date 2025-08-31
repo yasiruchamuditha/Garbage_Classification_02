@@ -23,3 +23,9 @@ ENV/
 # Ignore dataset folders
 dataset/
 dataset_full/
+
+# Docker
+.dockerignore
+
+# Temporary files
+/tmp/
