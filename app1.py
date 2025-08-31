@@ -19,8 +19,11 @@ def main():
         # Run prediction
         prediction = model.predict(input_data)
 
-        # Display result
-        st.write("Prediction (raw):", prediction.tolist())
+    # Display result in requested format
+    pred_list = prediction.tolist()
+    formatted = {0: {i: v for i, v in enumerate(pred_list[0])}}
+    st.write("Prediction (raw):")
+    st.json(formatted)
 
 if __name__ == "__main__":
     main()
