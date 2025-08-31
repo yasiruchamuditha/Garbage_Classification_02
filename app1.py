@@ -1,29 +1,63 @@
+# app.py
 import streamlit as st
-from app_logic import load_model, preprocess_image_pil
+import tensorflow as tf
+import numpy as np
 from PIL import Image
 
-def main():
-    st.title("Garbage Classifier")
+MODEL_PATH = "garbage_classifier.h5"
+CLASS_INDEX_FILE = "class_indices.txt"
+IMG_SIZE = (128, 128)  # Must match your model input
 
-    uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-        st.image(image, caption="Uploaded Image", use_column_width=True)
+# Cache model loading for performance
+@st.cache_resource
+def load_model():
+    return tf.keras.models.load_model(MODEL_PATH)
 
-        # Load model
-        model = load_model("garbage_classifier.h5")
+# Cache class names
+@st.cache_data
+def load_class_names():
+    pairs = []
+    with open(CLASS_INDEX_FILE, "r") as f:
+        for line in f:
+            name, idx = line.strip().split(",")
+            pairs.append((name, int(idx)))
+    pairs.sort(key=lambda x: x[1])
+    return [p[0] for p in pairs]
 
-        # Preprocess image according to model input size
-        input_data = preprocess_image_pil(image, model)
+# Preprocess uploaded image
+def preprocess_image(image: Image.Image):
+    image = image.convert("RGB")
+    image = image.resize(IMG_SIZE)
+    arr = np.array(image).astype("float32") / 255.0
+    arr = np.expand_dims(arr, axis=0)
+    return arr
 
-        # Run prediction
-        prediction = model.predict(input_data)
+# Streamlit app layout
+st.set_page_config(page_title="Garbage Classification", page_icon="♻️")
+st.title("♻️ Garbage Classification")
+st.caption("Upload an image; the model will classify it as plastic, organic, or metal.")
 
-    # Display result in requested format
-    pred_list = prediction.tolist()
-    formatted = {0: {i: v for i, v in enumerate(pred_list[0])}}
-    st.write("Prediction (raw):")
-    st.json(formatted)
+model = load_model()
+class_names = load_class_names()
 
-if __name__ == "__main__":
-    main()
+uploaded_file = st.file_uploader("Choose an image", type=["jpg","jpeg","png"])
+if uploaded_file is not None:
+    img = Image.open(uploaded_file)
+    st.image(img, caption="Uploaded Image", use_column_width=True)
+
+    x = preprocess_image(img)
+    probs = model.predict(x, verbose=0)[0]
+    pred_idx = int(np.argmax(probs))
+    pred_name = class_names[pred_idx]
+    confidence = float(np.max(probs))
+
+    st.subheader("Prediction")
+    st.write(f"**Class:** {pred_name}")
+    st.write(f"**Confidence:** {confidence:.2f}")
+
+    st.subheader("Per-class probabilities")
+    for name, p in zip(class_names, probs):
+        st.write(f"- {name}: {p:.2f}")
+
+        
+    
