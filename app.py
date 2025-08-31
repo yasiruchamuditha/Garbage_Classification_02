@@ -8,9 +8,11 @@ MODEL_PATH = "garbage_classifier.h5"
 CLASS_INDEX_FILE = "class_indices.txt"
 IMG_SIZE = (128, 128)  # must match training
 
+
 @st.cache_resource
 def load_model():
     return tf.keras.models.load_model(MODEL_PATH)
+
 
 @st.cache_data
 def load_class_names():
@@ -24,6 +26,7 @@ def load_class_names():
     pairs.sort(key=lambda x: x[1])
     return [p[0] for p in pairs]
 
+
 def preprocess(image: Image.Image):
     # ensure RGB
     image = image.convert("RGB")
@@ -32,6 +35,7 @@ def preprocess(image: Image.Image):
     arr = np.expand_dims(arr, axis=0)
     return arr
 
+
 st.set_page_config(page_title="Garbage Classification", page_icon="♻️")
 st.title("♻️ Garbage Classification (plastic / organic / metal)")
 st.caption("Upload an image; the model will classify it.")
@@ -39,7 +43,7 @@ st.caption("Upload an image; the model will classify it.")
 model = load_model()
 class_names = load_class_names()
 
-uploaded = st.file_uploader("Choose an image", type=["jpg","jpeg","png"])
+uploaded = st.file_uploader("Choose an image", type=["jpg", "jpeg", "png"])
 if uploaded is not None:
     img = Image.open(uploaded)
     st.image(img, caption="Uploaded image", use_column_width=True)
